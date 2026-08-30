@@ -7,8 +7,12 @@ numbers** and honest **data-quality caveats**.
 
 > Built for the Skylark Drones Full-Stack Developer assignment.
 
-- **Live app:** _<add Render URL after deploy>_
+- **Live app:** https://skylark-bi-agent-jylb.onrender.com
 - **Repo:** https://github.com/niranjanagopinath/Skylark-Drones-Agent
+
+> ⏳ **First load may take ~30–50s** — the free Render tier sleeps after idle and
+> cold-starts on the next request. Subsequent requests are fast. Refresh once if
+> the first hit is slow.
 
 Ask things like *"How's our pipeline looking for the energy sector this quarter?"*,
 *"What's our win rate in mining?"*, or *"Give me a leadership update."*

@@ -72,7 +72,7 @@ class GroqProvider(BaseProvider):
                 self.url,
                 json=body,
                 headers={"Authorization": f"Bearer {self.api_key}"},
-                timeout=30,
+                timeout=20,
             )
         except httpx.HTTPError as exc:
             raise LLMUnavailable(f"Groq network error: {exc}") from exc
