@@ -221,7 +221,7 @@ frontend or in git.
 ```bash
 cd backend && python -m pytest -q
 ```
-28 tests cover normalization (dedup, header-echo, missing≠0, negatives, coverage,
+31 tests cover normalization (dedup, header-echo, missing≠0, negatives, coverage,
 date parsing), the BI engine (each metric hand-verified, sector filters, efficiency
 ratios), intent + timeframe parsing, and the end-to-end agent (clarification,
 graceful failure, disclosed assumptions). **Deterministic BI tests are isolated
