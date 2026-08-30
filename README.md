@@ -14,7 +14,10 @@ numbers** and honest **data-quality caveats**.
 > cold-starts on the next request. Subsequent requests are fast. Refresh once if
 > the first hit is slow.
 
-Ask things like *"How's our pipeline looking for the energy sector this quarter?"*,
+It's a calm, enterprise-style **BI workspace** — an Overview dashboard plus focused
+Sales, Operations and Financials views — with an **Ask** page for natural-language
+analysis. Every answer carries its data-quality caveats and a "How this was
+calculated" panel. Ask things like *"Which sectors have the strongest pipeline?"*,
 *"What's our win rate in mining?"*, or *"Give me a leadership update."*
 
 ---
@@ -84,8 +87,8 @@ performance (cross-board), deal status/stage breakdowns, receivables, a composit
 | `app/timeframe.py` | "this quarter" → concrete date range. |
 | `app/narrate.py` | Result → founder-readable prose (LLM, template fallback). |
 | `app/agent.py` | Pipeline glue + clarification/error handling. |
-| `app/main.py` | FastAPI API + static frontend. |
-| `frontend/` | Vanilla-JS chat UI + live KPI/data-quality dashboard. |
+| `app/main.py` | FastAPI API + static frontend (adds a composed `/api/dashboard`). |
+| `frontend/` | Vanilla-JS **BI workspace** — Overview / Sales / Operations / Financials / **Ask** — with a methodology-first audit panel. |
 
 ---
 
