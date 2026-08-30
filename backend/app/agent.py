@@ -12,6 +12,7 @@ fabricated answer.
 from __future__ import annotations
 
 import inspect
+import logging
 from datetime import date, datetime, timezone
 
 from . import bi_engine, intent as intent_mod, narrate
@@ -68,12 +69,12 @@ def answer(question: str, today: date | None = None) -> dict:
     try:
         ds = get_dataset()
     except MondayError as exc:
+        logging.getLogger("skylark").warning("chat: data source unavailable: %s", exc)
         return {
             "type": "error",
             "answer": (
-                "I can't reach the monday.com data source right now, so I won't "
-                "guess. Please try again shortly. "
-                f"(Details: {exc})"
+                "I can't reach the live business data right now, so I won't guess. "
+                "Please try again shortly."
             ),
             "intent": parsed.to_dict(),
         }

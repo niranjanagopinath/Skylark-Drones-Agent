@@ -8,18 +8,21 @@ documented in DECISION_LOG.md.
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from . import agent, bi_engine, llm
 from .config import FRONTEND_DIR, board_config_present, settings
 from .datasource import get_dataset
 from .monday_client import MondayError
+
+logger = logging.getLogger("skylark")
 
 app = FastAPI(
     title="Skylark BI Agent",
@@ -29,14 +32,24 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.allowed_origins,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
+
+# Safe, user-facing message when the data source is down (details go to logs).
+DATA_UNAVAILABLE = "Live business data is temporarily unavailable. Please try again shortly."
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Never leak stack traces or internals to the client."""
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse({"error": "Something went wrong on our side."}, status_code=500)
 
 
 class ChatRequest(BaseModel):
-    question: str
+    question: str = Field(min_length=0, max_length=1000)
 
 
 EXAMPLE_QUESTIONS = [
@@ -80,10 +93,8 @@ def overview() -> JSONResponse:
     try:
         ds = get_dataset()
     except MondayError as exc:
-        return JSONResponse(
-            {"error": str(exc), "hint": "Run scripts/ingest_to_monday.py and set MONDAY_API_TOKEN."},
-            status_code=503,
-        )
+        logger.warning("overview: data source unavailable: %s", exc)
+        return JSONResponse({"error": DATA_UNAVAILABLE}, status_code=503)
     pipeline = bi_engine.pipeline_health(ds)
     revenue = bi_engine.revenue_summary(ds)
     sectors = bi_engine.sector_performance(ds)
@@ -114,11 +125,8 @@ def dashboard(refresh: bool = False) -> JSONResponse:
     try:
         ds = get_dataset(force_refresh=refresh)
     except MondayError as exc:
-        return JSONResponse(
-            {"error": str(exc),
-             "hint": "Run scripts/ingest_to_monday.py and set MONDAY_API_TOKEN."},
-            status_code=503,
-        )
+        logger.warning("dashboard: data source unavailable: %s", exc)
+        return JSONResponse({"error": DATA_UNAVAILABLE}, status_code=503)
 
     pipeline = bi_engine.pipeline_health(ds)
     revenue = bi_engine.revenue_summary(ds)
@@ -162,7 +170,8 @@ def quality() -> JSONResponse:
     try:
         ds = get_dataset()
     except MondayError as exc:
-        return JSONResponse({"error": str(exc)}, status_code=503)
+        logger.warning("quality: data source unavailable: %s", exc)
+        return JSONResponse({"error": DATA_UNAVAILABLE}, status_code=503)
     return JSONResponse(bi_engine.data_quality(ds).to_dict())
 
 

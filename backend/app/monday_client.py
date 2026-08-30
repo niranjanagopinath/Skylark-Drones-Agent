@@ -13,9 +13,14 @@ instead of surfacing a wrong answer.
 
 from __future__ import annotations
 
+import logging
+import time
+
 import httpx
 
 from .config import settings
+
+logger = logging.getLogger("skylark.monday")
 
 
 class MondayError(RuntimeError):
@@ -42,12 +47,21 @@ query ($cursor: String!, $limit: Int!) {
 
 
 class MondayClient:
-    def __init__(self, token: str | None = None, url: str | None = None, timeout: float = 60.0):
+    def __init__(self, token: str | None = None, url: str | None = None,
+                 timeout: float = 30.0, retries: int = 2, backoff: float = 0.5):
         self.token = (token or settings.monday_api_token).strip()
         self.url = url or settings.monday_api_url
-        self.timeout = timeout
+        self.timeout = httpx.Timeout(timeout, connect=10.0)
+        self.retries = retries          # extra attempts after the first
+        self.backoff = backoff          # base seconds for exponential backoff
 
     def _post(self, query: str, variables: dict) -> dict:
+        """
+        POST a GraphQL query. Reads are idempotent, so transient failures
+        (network errors, timeouts, HTTP 429, HTTP 5xx) are retried with
+        exponential backoff. Terminal failures (401, GraphQL errors, malformed
+        bodies) fail fast. Secrets are never logged.
+        """
         if not self.token:
             raise MondayError("MONDAY_API_TOKEN is not configured.")
         headers = {
@@ -55,27 +69,48 @@ class MondayClient:
             "Content-Type": "application/json",
             "API-Version": "2024-10",
         }
-        try:
-            resp = httpx.post(
-                self.url,
-                json={"query": query, "variables": variables},
-                headers=headers,
-                timeout=self.timeout,
-            )
-        except httpx.HTTPError as exc:
-            raise MondayError(f"Network error contacting monday.com: {exc}") from exc
+        last_error: MondayError | None = None
 
-        if resp.status_code == 401:
-            raise MondayError("monday.com rejected the API token (401 Unauthorized).")
-        try:
-            body = resp.json()
-        except ValueError as exc:
-            raise MondayError(f"monday.com returned non-JSON (status {resp.status_code}).") from exc
-        if body.get("errors"):
-            raise MondayError(f"monday.com GraphQL error: {body['errors']}")
-        if "data" not in body:
-            raise MondayError(f"Unexpected monday.com response: {body}")
-        return body["data"]
+        for attempt in range(self.retries + 1):
+            transient = False
+            try:
+                resp = httpx.post(
+                    self.url,
+                    json={"query": query, "variables": variables},
+                    headers=headers,
+                    timeout=self.timeout,
+                )
+            except httpx.HTTPError as exc:
+                last_error = MondayError("Could not reach monday.com (network/timeout).")
+                logger.warning("monday.com request failed (attempt %d): %s", attempt + 1, exc)
+                transient = True
+            else:
+                if resp.status_code == 401:
+                    raise MondayError("monday.com rejected the API token (401 Unauthorized).")
+                if resp.status_code == 429 or resp.status_code >= 500:
+                    last_error = MondayError(f"monday.com temporary error (status {resp.status_code}).")
+                    logger.warning("monday.com transient status %s (attempt %d)",
+                                   resp.status_code, attempt + 1)
+                    transient = True
+                else:
+                    try:
+                        body = resp.json()
+                    except ValueError as exc:
+                        raise MondayError(
+                            f"monday.com returned a non-JSON response (status {resp.status_code})."
+                        ) from exc
+                    if body.get("errors"):
+                        # Log the detail; do not surface raw GraphQL internals upward.
+                        logger.error("monday.com GraphQL error: %s", body["errors"])
+                        raise MondayError("monday.com returned a query error.")
+                    if "data" not in body:
+                        raise MondayError("monday.com returned an unexpected response shape.")
+                    return body["data"]
+
+            if transient and attempt < self.retries:
+                time.sleep(self.backoff * (2 ** attempt))
+
+        raise last_error or MondayError("monday.com request failed.")
 
     def fetch_items(self, board_id: str | int, page_size: int = 500) -> list[dict]:
         """Return all items on a board as {id, name, columns:{col_id: text}}."""

@@ -58,6 +58,12 @@ class Settings:
         self.cache_ttl_seconds: int = int(os.getenv("CACHE_TTL_SECONDS", "300"))
         self.port: int = int(os.getenv("PORT", "8000"))
 
+        # CORS: comma-separated origins. Default "*" keeps the public demo open;
+        # set e.g. "https://app.example.com" to lock the API to a known origin.
+        self.allowed_origins: list[str] = [
+            o.strip() for o in os.getenv("ALLOWED_ORIGINS", "*").split(",") if o.strip()
+        ] or ["*"]
+
         # Optional manual overrides for board ids (normally read from board_config.json).
         self._deals_board_override = os.getenv("DEALS_BOARD_ID", "").strip()
         self._wo_board_override = os.getenv("WORK_ORDERS_BOARD_ID", "").strip()
