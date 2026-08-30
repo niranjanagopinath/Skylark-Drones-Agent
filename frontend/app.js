@@ -101,8 +101,8 @@ async function loadHealth() {
       src.textContent = "● data not configured"; src.className = "pill warn";
     }
     const llm = $("pill-llm");
-    llm.textContent = h.llm_enabled ? "AI: Claude" : "AI: deterministic";
-    llm.className = "pill" + (h.llm_enabled ? " ok" : " warn");
+    llm.textContent = "AI: " + (h.llm_provider || (h.llm_enabled ? "on" : "deterministic"));
+    llm.className = "pill" + (h.llm_enabled ? " ok" : "");
   } catch {}
 }
 

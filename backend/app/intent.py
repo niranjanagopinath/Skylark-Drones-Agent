@@ -144,67 +144,35 @@ def parse_rule_based(question: str, today: date | None = None) -> Intent:
 
 
 # ---------------------------------------------------------------------------
-# LLM parser (Anthropic structured tool-call)
+# LLM parser (provider-agnostic JSON output — works across Groq / Anthropic)
 # ---------------------------------------------------------------------------
-_INTENT_TOOL = {
-    "name": "set_intent",
-    "description": "Record the structured intent of the user's BI question.",
-    "input_schema": {
-        "type": "object",
-        "properties": {
-            "metric": {
-                "type": "string",
-                "enum": SUPPORTED_METRICS + ["unsupported"],
-                "description": "Which analysis best answers the question.",
-            },
-            "sector": {
-                "type": ["string", "null"],
-                "description": "Canonical sector to filter by, or null. Map 'energy' "
-                               "to 'Renewables'. Known sectors include Mining, "
-                               "Renewables, Railways, Powerline, Construction, Others.",
-            },
-            "timeframe_phrase": {
-                "type": ["string", "null"],
-                "description": "A relative timeframe phrase if present (e.g. 'this "
-                               "quarter', 'last month', 'FY', '2026'), else null.",
-            },
-            "needs_clarification": {"type": "boolean"},
-            "clarification": {
-                "type": ["string", "null"],
-                "description": "If ambiguous/unsupported, a short question to ask back.",
-            },
-        },
-        "required": ["metric", "needs_clarification"],
-    },
-}
-
 _SYSTEM = (
     "You classify founder-level business-intelligence questions for a company "
     "with two data sources: a sales Deals pipeline and Work Orders (execution + "
     "finance). Choose the single best metric. Do NOT compute or invent any "
-    "numbers — only classify. If the question cannot be answered from deals/work "
-    "orders data, set metric='unsupported' and provide a brief clarification."
+    "numbers — only classify.\n\n"
+    "Return ONLY a JSON object with these keys:\n"
+    f"  metric: one of {SUPPORTED_METRICS + ['unsupported']}\n"
+    "  sector: a sector name to filter by, or null. Map 'energy' to 'Renewables'. "
+    "Known sectors: Mining, Renewables, Railways, Powerline, Construction, Others.\n"
+    "  timeframe_phrase: a relative timeframe if present (e.g. 'this quarter', "
+    "'last month', 'FY', '2026'), else null.\n"
+    "  needs_clarification: boolean (true if ambiguous or unsupported)\n"
+    "  clarification: a short follow-up question if needed, else null.\n"
+    "If the question cannot be answered from deals/work-orders data, set "
+    "metric='unsupported' and needs_clarification=true."
 )
 
 
 def parse_llm(question: str, today: date | None = None) -> Intent:
-    import anthropic
+    from .llm import get_provider
 
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-    resp = client.messages.create(
-        model=settings.anthropic_model,
-        max_tokens=400,
-        system=_SYSTEM,
-        tools=[_INTENT_TOOL],
-        tool_choice={"type": "tool", "name": "set_intent"},
-        messages=[{"role": "user", "content": question}],
-    )
-    tool_use = next((b for b in resp.content if b.type == "tool_use"), None)
-    if tool_use is None:
-        raise ValueError("LLM did not return a tool call")
-    data = tool_use.input
-    if isinstance(data, str):
-        data = json.loads(data)
+    raw = get_provider().complete(_SYSTEM, question, max_tokens=300, json_mode=True)
+    # Be tolerant of models that wrap JSON in prose/code fences.
+    start, end = raw.find("{"), raw.rfind("}")
+    if start == -1 or end == -1:
+        raise ValueError(f"LLM did not return JSON: {raw[:120]}")
+    data = json.loads(raw[start:end + 1])
 
     metric = data.get("metric", "unsupported")
     if metric not in SUPPORTED_METRICS and metric != "unsupported":

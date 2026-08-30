@@ -16,7 +16,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import agent, bi_engine
+from . import agent, bi_engine, llm
 from .config import FRONTEND_DIR, board_config_present, settings
 from .datasource import get_dataset
 from .monday_client import MondayError
@@ -57,6 +57,7 @@ def health() -> dict:
         "time": datetime.now(timezone.utc).isoformat(),
         "monday_configured": settings.monday_configured,
         "llm_enabled": settings.llm_enabled,
+        "llm_provider": llm.provider_label(),
         "board_config_present": board_config_present(),
     }
 

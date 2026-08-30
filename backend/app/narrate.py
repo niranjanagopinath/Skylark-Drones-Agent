@@ -80,9 +80,8 @@ _SYSTEM = (
 
 
 def llm_narrative(question: str, result: MetricResult) -> str:
-    import anthropic
+    from .llm import get_provider
 
-    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
     payload = {
         "question": question,
         "title": result.title,
@@ -90,14 +89,8 @@ def llm_narrative(question: str, result: MetricResult) -> str:
         "breakdown": result.breakdown[:8],
         "caveats": result.caveats,
     }
-    resp = client.messages.create(
-        model=settings.anthropic_model,
-        max_tokens=500,
-        system=_SYSTEM,
-        messages=[{"role": "user", "content":
-                   f"Question: {question}\n\nResult JSON:\n{json.dumps(payload, default=str)}"}],
-    )
-    return "".join(b.text for b in resp.content if b.type == "text").strip()
+    user = f"Question: {question}\n\nResult JSON:\n{json.dumps(payload, default=str)}"
+    return get_provider().complete(_SYSTEM, user, max_tokens=500).strip()
 
 
 def narrate(question: str, result: MetricResult) -> str:

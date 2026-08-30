@@ -35,6 +35,21 @@ class Settings:
             "MONDAY_API_URL", "https://api.monday.com/v2"
         ).strip()
 
+        # --- LLM provider abstraction -------------------------------------
+        # Which backend powers the natural-language layer:
+        #   "none"      -> deterministic only (always free, no key needed)
+        #   "groq"      -> Groq free tier (no credit card, OpenAI-compatible)
+        #   "anthropic" -> Anthropic (PAID — requires credits)
+        # Default is "none" so the deployed app is a zero-cost dependency and
+        # anyone testing it (e.g. a recruiter) can never trigger billing.
+        self.llm_provider: str = os.getenv("LLM_PROVIDER", "none").strip().lower()
+
+        self.groq_api_key: str = os.getenv("GROQ_API_KEY", "").strip()
+        self.groq_model: str = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant").strip()
+        self.groq_api_url: str = os.getenv(
+            "GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions"
+        ).strip()
+
         self.anthropic_api_key: str = os.getenv("ANTHROPIC_API_KEY", "").strip()
         self.anthropic_model: str = os.getenv(
             "ANTHROPIC_MODEL", "claude-haiku-4-5-20251001"
@@ -49,8 +64,12 @@ class Settings:
 
     @property
     def llm_enabled(self) -> bool:
-        """True when an Anthropic key is configured; otherwise deterministic-only."""
-        return bool(self.anthropic_api_key)
+        """True when a usable, configured LLM provider is available."""
+        if self.llm_provider == "groq":
+            return bool(self.groq_api_key)
+        if self.llm_provider == "anthropic":
+            return bool(self.anthropic_api_key)
+        return False
 
     @property
     def monday_configured(self) -> bool:
