@@ -10,11 +10,15 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     envVars:
+      # Secrets — set these in the Render dashboard (never stored in git):
       - key: MONDAY_API_TOKEN
         sync: false
-      - key: ANTHROPIC_API_KEY
+      - key: GROQ_API_KEY
         sync: false
-      - key: ANTHROPIC_MODEL
-        value: claude-haiku-4-5-20251001
+      # Non-secret config:
+      - key: LLM_PROVIDER
+        value: groq
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-20b
       - key: CACHE_TTL_SECONDS
         value: "300"

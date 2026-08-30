@@ -368,20 +368,32 @@ def leadership_update(ds: Dataset, start: str | None = None,
     a leader should know before quoting these numbers. This is our interpretation
     of the optional "help prepare data for leadership updates" requirement.
     """
-    pipe = pipeline_health(ds, start=start, end=end)
-    rev = revenue_summary(ds, start=start, end=end)
+    pipe = pipeline_health(ds, start=start, end=end).summary_values
+    rev = revenue_summary(ds, start=start, end=end).summary_values
     sect = sector_performance(ds)
     top_sectors = sect.breakdown[:3]
 
-    caveats = sorted(set(pipe.caveats + rev.caveats))
+    caveats = sorted(set(
+        pipeline_health(ds, start=start, end=end).caveats
+        + revenue_summary(ds, start=start, end=end).caveats
+    ))
+    # Flat headline numbers so the answer renders richly and the numeric guard
+    # can validate every figure the narrator might cite.
     return MetricResult(
         metric="leadership_update",
         title="Leadership update",
         summary_values={
-            "pipeline": pipe.summary_values,
-            "revenue": rev.summary_values,
-            "top_sectors_by_billing": top_sectors,
+            "open_pipeline_value_inr": pipe["open_pipeline_value_inr"],
+            "open_deals": pipe["open_deals"],
+            "won_deals": pipe["won_deals"],
+            "lost_deals": pipe["lost_deals"],
+            "order_value_inr": rev["order_value_inr"],
+            "billed_value_inr": rev["billed_value_inr"],
+            "collected_amount_inr": rev["collected_amount_inr"],
+            "amount_receivable_inr": rev["amount_receivable_inr"],
+            "collection_efficiency_pct": rev["collection_efficiency_pct"],
         },
+        breakdown=top_sectors,
         caveats=caveats,
         audit={
             "components": ["pipeline_health", "revenue_summary", "sector_performance"],
