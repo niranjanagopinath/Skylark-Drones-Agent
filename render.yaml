@@ -1,0 +1,20 @@
+# Render blueprint. In the Render dashboard: New + -> Blueprint -> pick this repo.
+# Then set the two secret env vars (MONDAY_API_TOKEN, ANTHROPIC_API_KEY) which are
+# marked sync:false so they are never stored in git.
+services:
+  - type: web
+    name: skylark-bi-agent
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: MONDAY_API_TOKEN
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-haiku-4-5-20251001
+      - key: CACHE_TTL_SECONDS
+        value: "300"
