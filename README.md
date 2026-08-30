@@ -23,12 +23,18 @@ calculated" panel. Ask things like *"Which sectors have the strongest pipeline?"
 ---
 
 ## Table of contents
-1. [What it does](#what-it-does) · 2. [Architecture](#architecture) ·
+1. [What it does](#what-it-does) 
+2. [Architecture](#architecture) ·
 3. [The core principle: AI vs arithmetic](#core-principle) ·
-4. [Data flow](#data-flow) · 5. [Data-quality strategy](#data-quality) ·
-6. [Business logic](#business-logic) · 7. [monday.com integration](#monday) ·
-8. [Setup](#setup) · 9. [Testing](#testing) · 10. [Deployment](#deployment) ·
-11. [Assumptions & trade-offs](#assumptions) · 12. [Limitations & future work](#limitations) ·
+4. [Data flow](#data-flow) 
+5. [Data-quality strategy](#data-quality) ·
+6. [Business logic](#business-logic) 
+7. [monday.com integration](#monday) ·
+8. [Setup](#setup) · 
+9. [Testing](#testing) · 
+10. [Deployment](#deployment) ·
+11. [Assumptions & trade-offs](#assumptions) · 
+12. [Limitations & future work](#limitations) ·
 13. [AI tools & challenges](#ai-tools)
 
 ---
