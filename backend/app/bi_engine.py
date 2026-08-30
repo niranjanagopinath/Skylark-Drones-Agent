@@ -114,6 +114,16 @@ def _known_sectors(ds: Dataset) -> list[str]:
     return sorted(str(v) for v in vals)
 
 
+def _unknown_sector_caveats(ds: Dataset, df_sec: pd.DataFrame, sec: str | None) -> list[str]:
+    """If a sector filter matched nothing, say so and list the sectors we do have."""
+    if not sec or len(df_sec) > 0:
+        return []
+    return [
+        f"No records match the sector '{sec}'. Known sectors are: "
+        + ", ".join(_known_sectors(ds)) + "."
+    ]
+
+
 # ---------------------------------------------------------------------------
 # Metrics
 # ---------------------------------------------------------------------------
@@ -140,7 +150,8 @@ def pipeline_health(ds: Dataset, sector: str | None = None,
             weighted += w * float(v)
             weighted_n += 1
 
-    caveats = _empty_timeframe_caveat(df_sec, "tentative_close_date", date_filter, total)
+    caveats = _unknown_sector_caveats(ds, df_sec, sec)
+    caveats += _empty_timeframe_caveat(df_sec, "tentative_close_date", date_filter, total)
     caveats += _coverage_caveats(ds.deals_quality, ["deal_value", "closure_probability"])
     if weighted_n:
         caveats.append(
@@ -187,7 +198,8 @@ def revenue_summary(ds: Dataset, sector: str | None = None,
     billing_eff = (billed / order) if order else None
     collection_eff = (collected / billed) if billed else None
 
-    caveats = _empty_timeframe_caveat(df_sec, "start_date", date_filter, len(df))
+    caveats = _unknown_sector_caveats(ds, df_sec, sec)
+    caveats += _empty_timeframe_caveat(df_sec, "start_date", date_filter, len(df))
     caveats += _coverage_caveats(
         ds.wo_quality, ["order_value", "billed_value", "collected_amount"]
     )
@@ -230,8 +242,8 @@ def win_rate(ds: Dataset, sector: str | None = None) -> MetricResult:
     closed = won + lost
     rate = (won / closed) if closed else None
 
-    caveats = []
-    if closed == 0:
+    caveats = _unknown_sector_caveats(ds, df, sec)
+    if closed == 0 and not caveats:
         caveats.append("No closed deals (Won/Dead) in scope, so win rate is undefined.")
 
     return MetricResult(
@@ -329,7 +341,8 @@ def collections_summary(ds: Dataset, sector: str | None = None) -> MetricResult:
     collected = _sum(df["collected_amount"])
     receivable = _sum(df["amount_receivable"])
     eff = (collected / billed) if billed else None
-    caveats = _coverage_caveats(ds.wo_quality, ["collected_amount", "billed_value"])
+    caveats = _unknown_sector_caveats(ds, df, sec)
+    caveats += _coverage_caveats(ds.wo_quality, ["collected_amount", "billed_value"])
     return MetricResult(
         metric="collections_summary",
         title="Collections & receivables" + (f" — {sec}" if sec else ""),

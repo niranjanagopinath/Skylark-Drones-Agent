@@ -66,6 +66,16 @@ HEADER_ECHO_TOKENS = {
 # flagged as "other" so counts stay honest.
 CANONICAL_DEAL_STATUS = {"Won", "Dead", "Open", "On Hold"}
 
+# Sector labels present in the boards (used to guide intent parsing and to
+# canonicalise casing). If a user names something outside this set, we keep their
+# term so the BI engine can report "unknown sector" instead of silently answering
+# with all-company data mislabelled as that sector.
+KNOWN_SECTORS = [
+    "Mining", "Renewables", "Railways", "Powerline", "Construction",
+    "DSP", "Others", "Aviation", "Manufacturing",
+    "Security and Surveillance", "Tender",
+]
+
 # Sector query aliases: how a founder's word maps to a sector label present in
 # the data. Applied ONLY to interpret questions (never to rewrite the data), and
 # always disclosed in the answer. "Energy" is the classic example — the dataset

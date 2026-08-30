@@ -41,10 +41,11 @@ def test_win_rate(dataset):
     assert v["win_rate_pct"] == 50.0
 
 
-def test_win_rate_undefined_when_no_closed(dataset):
+def test_win_rate_undefined_for_unknown_sector(dataset):
     r = bi.win_rate(dataset, sector="DoesNotExist")
     assert r.summary_values["win_rate_pct"] is None
-    assert any("undefined" in c.lower() for c in r.caveats)
+    # Unknown sector is explained by listing the real sectors.
+    assert any("No records match the sector" in c for c in r.caveats)
 
 
 def test_revenue_summary_totals_and_efficiency(dataset):
@@ -90,6 +91,13 @@ def test_numeric_guard_rejects_fabricated_numbers(dataset):
     fabricated = "Our win rate is 55.6% and collections look healthy."
     assert narrate.narrative_is_grounded(grounded, r) is True
     assert narrate.narrative_is_grounded(fabricated, r) is False
+
+
+def test_unknown_sector_lists_known_sectors(dataset):
+    r = bi.pipeline_health(dataset, sector="Healthcare")  # not in fixture
+    assert r.summary_values["total_deals"] == 0
+    assert any("No records match the sector 'Healthcare'" in c for c in r.caveats)
+    assert any("Mining" in c and "Renewables" in c for c in r.caveats)
 
 
 def test_empty_timeframe_explains_date_range(dataset):

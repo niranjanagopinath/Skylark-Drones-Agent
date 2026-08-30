@@ -154,7 +154,9 @@ _SYSTEM = (
     "Return ONLY a JSON object with these keys:\n"
     f"  metric: one of {SUPPORTED_METRICS + ['unsupported']}\n"
     "  sector: a sector name to filter by, or null. Map 'energy' to 'Renewables'. "
-    "Known sectors: Mining, Renewables, Railways, Powerline, Construction, Others.\n"
+    f"Known sectors: {', '.join(schema.KNOWN_SECTORS)}. If the user names a "
+    "sector-like term that is NOT in this list (e.g. 'healthcare'), put that term "
+    "verbatim in sector (do NOT null it) so the system can report it is unknown.\n"
     "  timeframe_phrase: a relative timeframe if present (e.g. 'this quarter', "
     "'last month', 'FY', '2026'), else null.\n"
     "  needs_clarification: boolean (true if ambiguous or unsupported)\n"
@@ -197,15 +199,26 @@ def parse_llm(question: str, today: date | None = None) -> Intent:
     )
 
 
+def _canonicalize_sector(intent: Intent) -> Intent:
+    """Match the user's sector to a known label's casing; leave unknowns as-is
+    (the BI engine reports them). Prevents 'mining' from missing 'Mining'."""
+    if intent.sector:
+        for known in schema.KNOWN_SECTORS:
+            if intent.sector.strip().lower() == known.lower():
+                intent.sector = known
+                break
+    return intent
+
+
 def parse_intent(question: str, today: date | None = None) -> Intent:
     """LLM if configured (with graceful fallback), else deterministic."""
     if settings.llm_enabled:
         try:
-            return parse_llm(question, today)
+            return _canonicalize_sector(parse_llm(question, today))
         except Exception:
             fallback = parse_rule_based(question, today)
             fallback.assumptions.append(
                 "LLM intent parsing was unavailable; used the deterministic parser."
             )
-            return fallback
-    return parse_rule_based(question, today)
+            return _canonicalize_sector(fallback)
+    return _canonicalize_sector(parse_rule_based(question, today))
