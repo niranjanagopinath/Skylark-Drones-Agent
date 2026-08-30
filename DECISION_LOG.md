@@ -44,9 +44,17 @@ and the alternatives I rejected. (Kept to the ~2-page brief.)
 8. **Deterministic fallback everywhere.** No LLM key or an LLM/monday outage → the
    agent still works via a keyword intent parser, template narration, and a stale
    cache. The system never fabricates an answer when a dependency fails; it says so.
-9. **Tech stack:** Python/FastAPI/pandas (best-in-class for messy tabular BI +
-   fast to write + trivial Docker deploy), Anthropic Claude (strong structured
-   tool-calling), vanilla-JS frontend (no build step, instant deploy).
+9. **No paid runtime dependency; LLM behind a provider abstraction.** I verified
+   the Anthropic key returns *"credit balance too low"* — i.e. it would be a paid
+   dependency, and a recruiter testing the hosted app could incur cost. So the LLM
+   is abstracted behind `app/llm.py` (`none` | `groq` | `anthropic`) and the app
+   **defaults to `none`** (deterministic, free). Groq's free tier (no credit card)
+   is the drop-in LLM for richer phrasing at $0. Because arithmetic is provider-
+   independent, this choice never affects a number — only wording. Rejected making
+   Anthropic a hard dependency.
+10. **Tech stack:** Python/FastAPI/pandas (best-in-class for messy tabular BI +
+   fast to write + trivial Docker deploy); provider-agnostic LLM; vanilla-JS
+   frontend (no build step, instant deploy).
 
 ## How I interpreted "help prepare data for leadership updates"
 A composite **Leadership Update** metric that assembles the numbers a founder would

@@ -100,6 +100,11 @@ reproduced by a test* — the property a business actually needs. If the LLM (or
 API key) is unavailable, the agent still answers via a deterministic keyword parser
 and template narration.
 
+The LLM sits behind a **provider abstraction** (`app/llm.py`) supporting a free
+deterministic mode (`none`), Groq's free tier (`groq`), and Anthropic (`anthropic`).
+Because arithmetic is provider-independent, swapping or removing the LLM changes the
+*phrasing*, never the *numbers*.
+
 ---
 
 <a name="data-flow"></a>
@@ -187,9 +192,16 @@ cd backend && uvicorn app.main:app --reload --port 8000
 | Var | Required | Purpose |
 |---|---|---|
 | `MONDAY_API_TOKEN` | ✅ | Read monday boards (+ write once for ingestion). |
-| `ANTHROPIC_API_KEY` | ⛔ optional | Enables the LLM; without it, deterministic mode. |
-| `ANTHROPIC_MODEL` | — | Default `claude-haiku-4-5-20251001`. |
+| `LLM_PROVIDER` | — | `none` (default, free), `groq` (free tier), or `anthropic` (paid). |
+| `GROQ_API_KEY` | — | Only if `LLM_PROVIDER=groq` — free key from console.groq.com. |
+| `ANTHROPIC_API_KEY` | — | Only if `LLM_PROVIDER=anthropic` (requires paid credits). |
 | `CACHE_TTL_SECONDS` | — | monday cache TTL (default 300). |
+
+> **Cost:** the app defaults to `LLM_PROVIDER=none` (deterministic), so the hosted
+> demo is **never a paid dependency** — anyone testing it cannot trigger billing.
+> Set `LLM_PROVIDER=groq` with a free Groq key for richer natural-language
+> understanding at **$0**. The LLM is abstracted behind `app/llm.py`, so switching
+> providers is a one-line env change.
 
 Secrets are read from env / `backend/.env` (git-ignored). No credentials in the
 frontend or in git.
@@ -240,8 +252,10 @@ energy→Renewables (disclosed); single deployable unit; deterministic fallbacks
 
 <a name="ai-tools"></a>
 ## 13. AI tools used & challenges
-**AI tools:** Claude Code (Anthropic) for scaffolding, implementation, tests, and
-docs; Anthropic Claude at runtime for intent + narration. The architecture,
+**AI tools:** Claude Code (Anthropic) assisted with scaffolding, implementation,
+tests, and docs during development. At **runtime** the natural-language layer runs
+through a provider abstraction that defaults to a free path (deterministic, or
+Groq's free tier) so the hosted app carries no paid dependency. The architecture,
 business definitions, data-quality strategy, and acceptance of results are my
 engineering decisions (see Decision Log).
 
