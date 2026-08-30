@@ -40,8 +40,10 @@
       </nav>
 
       <div class="sidebar-footer">
-        <a class="nav-item" id="repo-link" href="#" target="_blank" rel="noopener noreferrer">
-          <span data-icon="github"></span>Repository
+        <a class="repo-link" id="repo-link" href="#" target="_blank" rel="noopener noreferrer" title="Open the GitHub repository in a new tab">
+          <span class="repo-ic" data-icon="github"></span>
+          <span class="repo-text">Repository<small>View source on GitHub</small></span>
+          <span class="repo-ext" data-icon="external"></span>
         </a>
       </div>
     </aside>
@@ -49,16 +51,18 @@
     <!-- Main -->
     <div class="main">
       <header class="topbar">
-        <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-          <button class="hamburger" id="hamburger" aria-label="Toggle navigation"><span data-icon="menu"></span></button>
-          <div style="min-width:0;">
-            <h1 id="page-title">Overview</h1>
-            <div class="desc" id="page-desc">What's happening across the business.</div>
+        <div class="topbar-inner">
+          <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+            <button class="hamburger" id="hamburger" aria-label="Toggle navigation"><span data-icon="menu"></span></button>
+            <div style="min-width:0;">
+              <h1 id="page-title">Overview</h1>
+              <div class="desc" id="page-desc">What's happening across the business.</div>
+            </div>
           </div>
-        </div>
-        <div class="topbar-actions">
-          <span class="status-chip" id="top-status"><span class="dot stale" id="top-dot"></span><span id="top-status-text">—</span></span>
-          <button class="btn" id="refresh-btn"><span data-icon="refresh"></span>Refresh</button>
+          <div class="topbar-actions">
+            <span class="status-chip" id="top-status"><span class="dot stale" id="top-dot"></span><span id="top-status-text">—</span></span>
+            <button class="btn" id="refresh-btn"><span data-icon="refresh"></span>Refresh</button>
+          </div>
         </div>
       </header>
 
