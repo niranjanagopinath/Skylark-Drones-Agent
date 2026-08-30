@@ -3,66 +3,68 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Skylark BI Agent</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <title>Skylark Intelligence — Business Intelligence Workspace</title>
+  <meta name="description" content="Business intelligence workspace over Monday.com deals and work orders, with conversational analysis." />
   <link rel="stylesheet" href="/static/style.css" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛰️</text></svg>" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23217c78'/%3E%3Cpath d='M8 20l5-6 4 3 7-8' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="logo">🛰️</span>
-      <div>
-        <h1>Skylark BI Agent</h1>
-        <p class="sub">Conversational business intelligence over monday.com</p>
-      </div>
-    </div>
-    <div class="status" id="status">
-      <span class="pill" id="pill-source">connecting…</span>
-      <span class="pill" id="pill-llm"></span>
-    </div>
-  </header>
+  <div class="app" id="app">
+    <div class="backdrop" id="backdrop"></div>
 
-  <main class="layout">
-    <!-- Left: dashboard -->
-    <aside class="sidebar">
-      <section class="card">
-        <h2>Overview</h2>
-        <div class="kpi-grid" id="kpis"><div class="loading">Loading live data…</div></div>
-      </section>
-
-      <section class="card">
-        <h2>Top sectors <span class="hint">by billing</span></h2>
-        <div id="sectors" class="sectors"><div class="loading">…</div></div>
-      </section>
-
-      <section class="card">
-        <h2>Data quality</h2>
-        <div id="quality" class="quality"><div class="loading">…</div></div>
-      </section>
-    </aside>
-
-    <!-- Right: chat -->
-    <section class="chat">
-      <div class="messages" id="messages">
-        <div class="msg agent">
-          <div class="bubble">
-            <p>Hi 👋 I'm your BI assistant. Ask me about pipeline, revenue,
-            collections, win rate or sector performance. Every number I show is
-            computed deterministically from live monday.com data — expand
-            <em>“How this was computed”</em> under any answer to verify it.</p>
-          </div>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark" data-icon="spark" aria-hidden="true"></div>
+        <div>
+          <div class="brand-name">SKYLARK<span>INTELLIGENCE</span></div>
+          <div class="brand-sub">Business Intelligence</div>
         </div>
       </div>
 
-      <div class="examples" id="examples"></div>
+      <nav class="nav" aria-label="Primary">
+        <button class="nav-item" data-view="overview"><span data-icon="overview"></span>Overview</button>
+        <button class="nav-item" data-view="sales"><span data-icon="sales"></span>Sales</button>
+        <button class="nav-item" data-view="operations"><span data-icon="operations"></span>Operations</button>
+        <button class="nav-item" data-view="financials"><span data-icon="financials"></span>Financials</button>
+        <button class="nav-item" data-view="ask"><span data-icon="ask"></span>Ask</button>
 
-      <form class="composer" id="composer" autocomplete="off">
-        <input id="input" placeholder="e.g. How's our pipeline in mining this quarter?" />
-        <button type="submit" id="send">Ask</button>
-      </form>
-    </section>
-  </main>
+        <div class="nav-label">Data</div>
+        <div class="data-card" id="data-card">
+          <div class="row">
+            <span class="dot stale" id="data-dot"></span>
+            <span class="name">Monday.com</span>
+          </div>
+          <div class="meta" id="data-meta">Connecting…</div>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a class="nav-item" id="repo-link" href="#" target="_blank" rel="noopener noreferrer">
+          <span data-icon="github"></span>Repository
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <header class="topbar">
+        <div style="display:flex; align-items:center; gap:12px; min-width:0;">
+          <button class="hamburger" id="hamburger" aria-label="Toggle navigation"><span data-icon="menu"></span></button>
+          <div style="min-width:0;">
+            <h1 id="page-title">Overview</h1>
+            <div class="desc" id="page-desc">What's happening across the business.</div>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <span class="status-chip" id="top-status"><span class="dot stale" id="top-dot"></span><span id="top-status-text">—</span></span>
+          <button class="btn" id="refresh-btn"><span data-icon="refresh"></span>Refresh</button>
+        </div>
+      </header>
+
+      <main class="content" id="view" tabindex="-1"></main>
+    </div>
+  </div>
 
   <script src="/static/app.js"></script>
 </body>
