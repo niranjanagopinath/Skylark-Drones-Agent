@@ -138,6 +138,7 @@ rest, and always disclose**:
 | Excel date serials (e.g. `46079`) | Converted to ISO dates. |
 | Inconsistent categories | Whitespace/case fixed; **distinct real categories never merged**. |
 | Sectors in one board but not the other | Shown as zero on the missing side (real coverage, not an error). |
+| Unknown sector asked for (e.g. "healthcare") | Returns 0 with a caveat listing the sectors that *do* exist — never mislabels all-company data. |
 
 Every metric surfaces the caveats relevant to *that* figure. See
 `GET /api/quality` and the **Data quality** panel in the UI.
