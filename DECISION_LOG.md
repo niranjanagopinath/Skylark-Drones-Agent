@@ -55,6 +55,15 @@ and the alternatives I rejected. (Kept to the ~2-page brief.)
 10. **Tech stack:** Python/FastAPI/pandas (best-in-class for messy tabular BI +
    fast to write + trivial Docker deploy); provider-agnostic LLM; vanilla-JS
    frontend (no build step, instant deploy).
+11. **Resilience & failure boundaries (hardening pass).** The monday client now
+   retries only *transient* failures (network/timeout/429/5xx) with bounded
+   exponential backoff and structured timeouts, while terminal errors (401, GraphQL
+   errors, malformed bodies) fail fast — safe because reads are idempotent. A global
+   exception handler + per-endpoint sanitisation ensure **stack traces and raw
+   GraphQL internals never reach the client** (logged server-side only). Added
+   input-length bounds on `/api/chat` and configurable CORS. Rejected heavier infra
+   (Redis, rate-limiter, async client) as unjustified at this scale — noted as future
+   work instead.
 
 ## How I interpreted "help prepare data for leadership updates"
 A composite **Leadership Update** metric that assembles the numbers a founder would

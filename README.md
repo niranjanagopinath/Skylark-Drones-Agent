@@ -193,7 +193,8 @@ pip install -r backend/requirements.txt
 
 # 2. Configure secrets
 cp backend/.env.example backend/.env
-#   set MONDAY_API_TOKEN (required) and ANTHROPIC_API_KEY (optional)
+#   set MONDAY_API_TOKEN (required); for the free LLM set LLM_PROVIDER=groq + GROQ_API_KEY
+#   (leave LLM_PROVIDER=none to run fully deterministic with no LLM key)
 
 # 3. One-time: create + populate the monday boards
 python scripts/ingest_to_monday.py       # writes backend/app/board_config.json
@@ -211,6 +212,7 @@ cd backend && uvicorn app.main:app --reload --port 8000
 | `GROQ_API_KEY` | — | Only if `LLM_PROVIDER=groq` — free key from console.groq.com. |
 | `ANTHROPIC_API_KEY` | — | Only if `LLM_PROVIDER=anthropic` (requires paid credits). |
 | `CACHE_TTL_SECONDS` | — | monday cache TTL (default 300). |
+| `ALLOWED_ORIGINS` | — | Comma-separated CORS origins (default `*`; set to lock the API down). |
 
 > **Cost:** the app defaults to `LLM_PROVIDER=none` (deterministic), so the hosted
 > demo is **never a paid dependency** — anyone testing it cannot trigger billing.
@@ -228,11 +230,13 @@ frontend or in git.
 ```bash
 cd backend && python -m pytest -q
 ```
-31 tests cover normalization (dedup, header-echo, missing≠0, negatives, coverage,
+38 tests cover normalization (dedup, header-echo, missing≠0, negatives, coverage,
 date parsing), the BI engine (each metric hand-verified, sector filters, efficiency
-ratios), intent + timeframe parsing, and the end-to-end agent (clarification,
-graceful failure, disclosed assumptions). **Deterministic BI tests are isolated
-from the LLM** — they need no API key and prove the numbers.
+ratios), intent + timeframe parsing, the end-to-end agent (clarification, graceful
+failure, disclosed assumptions), and **failure boundaries** (monday retry/transient
+handling, 401 fail-fast, stale-cache fallback, agent safe-error on data-down, LLM-
+failure narration fallback). **Deterministic BI tests are isolated from the LLM** —
+they need no API key and prove the numbers.
 
 ---
 
@@ -240,10 +244,29 @@ from the LLM** — they need no API key and prove the numbers.
 ## 10. Deployment (Render)
 Single Docker image (FastAPI serves API + frontend).
 1. Push to GitHub → Render **New + → Blueprint** → select this repo (`render.yaml`).
-2. Set `MONDAY_API_TOKEN` and `ANTHROPIC_API_KEY` (marked `sync:false`).
+2. Set the `sync:false` secrets `MONDAY_API_TOKEN` and `GROQ_API_KEY` (the blueprint
+   already sets `LLM_PROVIDER=groq`). Omit the Groq key to run deterministic-only.
 3. Deploy; health check at `/health`.
 
 `board_config.json` is committed so the deployed app knows the board ids.
+
+---
+
+<a name="reliability"></a>
+## Reliability & error handling
+- **monday resilience:** structured timeouts (`connect 10s` / `read 30s`) and a
+  **bounded exponential-backoff retry** for *transient* failures only (network,
+  timeout, HTTP 429/5xx). Terminal failures (401, GraphQL errors, malformed bodies)
+  **fail fast**. Reads are idempotent, so retrying is safe.
+- **Graceful degradation:** on a failed refresh the data layer serves the last good
+  **TTL cache** (`source: "monday (stale cache)"`); if there is none, endpoints return
+  a safe `503` and the agent returns an `error` result **with no numbers**.
+- **Error boundary:** a global exception handler plus per-endpoint sanitisation mean
+  **stack traces and raw GraphQL internals never reach the client** — the detail is
+  logged server-side; the user sees a safe message.
+- **Input & CORS:** `POST /api/chat` bounds the question to 1000 chars (oversized →
+  `422`); CORS is limited to `GET/POST/OPTIONS` + `Content-Type` with origins
+  configurable via `ALLOWED_ORIGINS`.
 
 ---
 
