@@ -58,7 +58,7 @@ performance (cross-board), deal status/stage breakdowns, receivables, a composit
    /static + /api        │                                             │
                          │   agent.py  ── orchestration                │
                          │      │                                      │
-                         │      ├─▶ intent.py    ─▶ Anthropic Claude   │  ← interpret
+                         │      ├─▶ intent.py    ─▶ LLM Provider       │  ← interpret
                          │      │   (structured tool-call | keyword)   │
                          │      │                                      │
                          │      ├─▶ datasource.py ─▶ monday_client.py ─┼─▶ monday.com
@@ -68,7 +68,7 @@ performance (cross-board), deal status/stage breakdowns, receivables, a composit
                          │      │                                      │
                          │      ├─▶ bi_engine.py  ── DETERMINISTIC     │  ← compute (no LLM)
                          │      │                                      │
-                         │      └─▶ narrate.py    ─▶ Anthropic Claude  │  ← explain
+                         │      └─▶ narrate.py    ─▶ LLM Provider      │  ← explain
                          └─────────────────────────────────────────────┘
 
   One-time setup:  Excel ──▶ scripts/ingest_to_monday.py ──▶ monday boards
@@ -111,6 +111,7 @@ The LLM sits behind a **provider abstraction** (`app/llm.py`) supporting a free
 deterministic mode (`none`), Groq's free tier (`groq`), and Anthropic (`anthropic`).
 Because arithmetic is provider-independent, swapping or removing the LLM changes the
 *phrasing*, never the *numbers*.
+
 
 ---
 
