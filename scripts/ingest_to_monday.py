@@ -206,6 +206,19 @@ def create_column(board_id: str, title: str, ctype: str) -> str:
     return data["create_column"]["id"]
 
 
+def clear_default_items(board_id: str) -> int:
+    """Remove monday's auto-created empty sample item(s) so counts stay pristine."""
+    q = ("query ($b: [ID!]) { boards(ids: $b) { items_page(limit: 50) "
+         "{ items { id column_values { text } } } } }")
+    items = monday(q, {"b": [board_id]})["boards"][0]["items_page"]["items"]
+    removed = 0
+    for it in items:
+        if not any((cv["text"] or "").strip() for cv in it["column_values"]):
+            monday(f'mutation {{ delete_item(item_id: {it["id"]}) {{ id }} }}')
+            removed += 1
+    return removed
+
+
 def build_column_map(board_id: str, spec) -> tuple[dict, dict]:
     """Create every non-name column; return {logical: monday_col_id} and meta."""
     col_map = {"name": "name"}
@@ -267,6 +280,9 @@ def ingest_board(title, desc, xlsx_path, name_col, spec):
     board = create_board(title, desc)
     print(f"  board created: {board['id']}  {board['url']}")
     col_map, meta = build_column_map(board["id"], spec)
+    removed = clear_default_items(board["id"])
+    if removed:
+        print(f"  removed {removed} default sample item(s)")
     inserted = insert_items(board["id"], records, col_map, meta)
     return {
         "board_id": board["id"],

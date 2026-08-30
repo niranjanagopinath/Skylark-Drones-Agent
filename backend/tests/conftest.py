@@ -19,7 +19,20 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app import normalize  # noqa: E402
+from app.config import settings  # noqa: E402
 from app.datasource import Dataset  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _deterministic_llm():
+    """Keep the whole suite hermetic: no network, no LLM. BI tests must be
+    reproducible offline. LLM behaviour is exercised separately/manually."""
+    original = settings.llm_provider
+    settings.llm_provider = "none"
+    try:
+        yield
+    finally:
+        settings.llm_provider = original
 
 DEAL_ROWS = [
     # name, sector, status, stage, probability, value, tentative_close_date

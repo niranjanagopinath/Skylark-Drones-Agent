@@ -40,13 +40,13 @@ class ChatRequest(BaseModel):
 
 
 EXAMPLE_QUESTIONS = [
-    "How's our pipeline looking for the energy sector this quarter?",
+    "How's our pipeline looking in the energy sector?",
     "What's our total billed revenue and how much have we collected?",
     "What's our win rate in mining?",
-    "Compare performance across sectors.",
+    "Which sectors are performing best?",
     "How much is outstanding in receivables?",
     "Give me a leadership update.",
-    "What are the data-quality issues I should know about?",
+    "What data-quality issues should I know about?",
 ]
 
 

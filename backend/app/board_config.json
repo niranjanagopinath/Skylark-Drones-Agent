@@ -1,0 +1,226 @@
+{
+  "generated_at": "2026-08-30T10:52:24.257158+00:00",
+  "monday_account": "Niranjana K Gopinth <miragupta2702@gmail.com>",
+  "deals": {
+    "board_id": "5030969236",
+    "board_url": "https://skylark-drones-assignment.monday.com/boards/5030969236",
+    "columns": {
+      "name": "name",
+      "owner": "text_mm6qbchx",
+      "client_code": "text_mm6q3e90",
+      "deal_status": "color_mm6q2e8j",
+      "close_date": "date_mm6qjecs",
+      "closure_probability": "color_mm6qa1xc",
+      "deal_value": "numeric_mm6qefh8",
+      "tentative_close_date": "date_mm6qdz7a",
+      "deal_stage": "color_mm6qsjfw",
+      "product": "text_mm6qqn3m",
+      "sector": "color_mm6q5s33",
+      "created_date": "date_mm6qg4bp",
+      "source_row": "text_mm6qezdd"
+    },
+    "column_meta": {
+      "name": {
+        "title": "Name",
+        "type": "name"
+      },
+      "owner": {
+        "title": "Owner",
+        "type": "text",
+        "excel_col": "B"
+      },
+      "client_code": {
+        "title": "Client Code",
+        "type": "text",
+        "excel_col": "C"
+      },
+      "deal_status": {
+        "title": "Deal Status",
+        "type": "status",
+        "excel_col": "D"
+      },
+      "close_date": {
+        "title": "Close Date",
+        "type": "date",
+        "excel_col": "E"
+      },
+      "closure_probability": {
+        "title": "Closure Probability",
+        "type": "status",
+        "excel_col": "F"
+      },
+      "deal_value": {
+        "title": "Deal Value",
+        "type": "numbers",
+        "excel_col": "G"
+      },
+      "tentative_close_date": {
+        "title": "Tentative Close Date",
+        "type": "date",
+        "excel_col": "H"
+      },
+      "deal_stage": {
+        "title": "Deal Stage",
+        "type": "status",
+        "excel_col": "I"
+      },
+      "product": {
+        "title": "Product",
+        "type": "text",
+        "excel_col": "J"
+      },
+      "sector": {
+        "title": "Sector",
+        "type": "status",
+        "excel_col": "K"
+      },
+      "created_date": {
+        "title": "Created Date",
+        "type": "date",
+        "excel_col": "L"
+      },
+      "source_row": {
+        "title": "Source Row",
+        "type": "text",
+        "excel_col": null
+      }
+    },
+    "records_inserted": 344,
+    "ingest_stats": {
+      "dropped_header_echo": 2,
+      "blank_skipped": 0
+    }
+  },
+  "work_orders": {
+    "board_id": "5030969555",
+    "board_url": "https://skylark-drones-assignment.monday.com/boards/5030969555",
+    "columns": {
+      "name": "name",
+      "customer_code": "text_mm6qftpp",
+      "serial": "text_mm6qhrf4",
+      "nature_of_work": "color_mm6qxwcw",
+      "execution_status": "color_mm6qc3xw",
+      "date_po_loi": "date_mm6qnzcw",
+      "document_type": "text_mm6q39ep",
+      "start_date": "date_mm6qw6pv",
+      "end_date": "date_mm6qj92d",
+      "owner": "text_mm6q4jd1",
+      "sector": "color_mm6qqc4e",
+      "type_of_work": "text_mm6qc0a5",
+      "software_platform": "text_mm6q1y1z",
+      "order_value": "numeric_mm6qgtef",
+      "billed_value": "numeric_mm6qmtm3",
+      "collected_amount": "numeric_mm6qet81",
+      "amount_to_be_billed": "numeric_mm6qddv3",
+      "amount_receivable": "numeric_mm6qm9n9",
+      "invoice_status": "text_mm6qgmnr",
+      "source_row": "text_mm6qatyg"
+    },
+    "column_meta": {
+      "name": {
+        "title": "Name",
+        "type": "name"
+      },
+      "customer_code": {
+        "title": "Customer Code",
+        "type": "text",
+        "excel_col": "B"
+      },
+      "serial": {
+        "title": "Serial",
+        "type": "text",
+        "excel_col": "C"
+      },
+      "nature_of_work": {
+        "title": "Nature of Work",
+        "type": "status",
+        "excel_col": "D"
+      },
+      "execution_status": {
+        "title": "Execution Status",
+        "type": "status",
+        "excel_col": "F"
+      },
+      "date_po_loi": {
+        "title": "Date of PO/LOI",
+        "type": "date",
+        "excel_col": "H"
+      },
+      "document_type": {
+        "title": "Document Type",
+        "type": "text",
+        "excel_col": "I"
+      },
+      "start_date": {
+        "title": "Start Date",
+        "type": "date",
+        "excel_col": "J"
+      },
+      "end_date": {
+        "title": "End Date",
+        "type": "date",
+        "excel_col": "K"
+      },
+      "owner": {
+        "title": "Owner",
+        "type": "text",
+        "excel_col": "L"
+      },
+      "sector": {
+        "title": "Sector",
+        "type": "status",
+        "excel_col": "M"
+      },
+      "type_of_work": {
+        "title": "Type of Work",
+        "type": "text",
+        "excel_col": "N"
+      },
+      "software_platform": {
+        "title": "Software Platform",
+        "type": "text",
+        "excel_col": "O"
+      },
+      "order_value": {
+        "title": "Order Value (Incl GST)",
+        "type": "numbers",
+        "excel_col": "S"
+      },
+      "billed_value": {
+        "title": "Billed Value (Incl GST)",
+        "type": "numbers",
+        "excel_col": "U"
+      },
+      "collected_amount": {
+        "title": "Collected Amount (Incl GST)",
+        "type": "numbers",
+        "excel_col": "V"
+      },
+      "amount_to_be_billed": {
+        "title": "Amount To Be Billed (Incl GST)",
+        "type": "numbers",
+        "excel_col": "X"
+      },
+      "amount_receivable": {
+        "title": "Amount Receivable",
+        "type": "numbers",
+        "excel_col": "Y"
+      },
+      "invoice_status": {
+        "title": "Invoice Status",
+        "type": "text",
+        "excel_col": "AE"
+      },
+      "source_row": {
+        "title": "Source Row",
+        "type": "text",
+        "excel_col": null
+      }
+    },
+    "records_inserted": 176,
+    "ingest_stats": {
+      "dropped_header_echo": 0,
+      "blank_skipped": 2
+    }
+  }
+}

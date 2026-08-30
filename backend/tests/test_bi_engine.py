@@ -79,3 +79,21 @@ def test_metric_result_is_json_serializable(dataset):
     import json
     r = bi.pipeline_health(dataset)
     json.dumps(r.to_dict())  # must not raise
+
+
+def test_numeric_guard_rejects_fabricated_numbers(dataset):
+    """The narration guard must reject any number not derivable from the result."""
+    from app import narrate
+    r = bi.collections_summary(dataset)  # has billed/collected/receivable, NO win rate
+    grounded = "Collections stand at " + narrate.format_inr(
+        r.summary_values["collected_amount_inr"]) + "."
+    fabricated = "Our win rate is 55.6% and collections look healthy."
+    assert narrate.narrative_is_grounded(grounded, r) is True
+    assert narrate.narrative_is_grounded(fabricated, r) is False
+
+
+def test_empty_timeframe_explains_date_range(dataset):
+    # Fixture deals close in 2026; a 2099 window must return 0 with an explanation.
+    r = bi.pipeline_health(dataset, start="2099-01-01", end="2099-12-31")
+    assert r.summary_values["total_deals"] == 0
+    assert any("requested window" in c for c in r.caveats)

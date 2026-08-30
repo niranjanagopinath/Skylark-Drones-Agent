@@ -75,6 +75,24 @@ def _filter_dates(
     return df[mask].copy(), {"field": date_field, "start": start, "end": end}
 
 
+def _empty_timeframe_caveat(pre_filter_df: pd.DataFrame, date_field: str,
+                            date_filter: dict | None, n_after: int) -> list[str]:
+    """When a timeframe filter yields nothing, explain the data's real date range."""
+    if not date_filter or n_after > 0:
+        return []
+    dr = pd.to_datetime(pre_filter_df[date_field], errors="coerce").dropna()
+    if dr.empty:
+        return [f"No records fall in the requested window "
+                f"({date_filter['start']}–{date_filter['end']}), and "
+                f"'{date_field}' is empty for this selection."]
+    return [
+        f"No records fall in the requested window "
+        f"({date_filter['start']}–{date_filter['end']}). For context, "
+        f"'{date_field}' in this selection ranges "
+        f"{dr.min().date()} to {dr.max().date()}."
+    ]
+
+
 def _coverage_caveats(quality, fields: list[str]) -> list[str]:
     out = []
     for f in fields:
@@ -101,8 +119,8 @@ def _known_sectors(ds: Dataset) -> list[str]:
 # ---------------------------------------------------------------------------
 def pipeline_health(ds: Dataset, sector: str | None = None,
                     start: str | None = None, end: str | None = None) -> MetricResult:
-    df, sec = _filter_sector(ds.deals, sector)
-    df, date_filter = _filter_dates(df, "tentative_close_date", start, end)
+    df_sec, sec = _filter_sector(ds.deals, sector)
+    df, date_filter = _filter_dates(df_sec, "tentative_close_date", start, end)
 
     total = len(df)
     open_df = df[~df["deal_status"].fillna("").isin(_OPEN_EXCLUDED_STATUS)]
@@ -122,7 +140,8 @@ def pipeline_health(ds: Dataset, sector: str | None = None,
             weighted += w * float(v)
             weighted_n += 1
 
-    caveats = _coverage_caveats(ds.deals_quality, ["deal_value", "closure_probability"])
+    caveats = _empty_timeframe_caveat(df_sec, "tentative_close_date", date_filter, total)
+    caveats += _coverage_caveats(ds.deals_quality, ["deal_value", "closure_probability"])
     if weighted_n:
         caveats.append(
             f"Weighted pipeline uses assumed factors High={PROBABILITY_WEIGHTS['High']}, "
@@ -156,8 +175,8 @@ def pipeline_health(ds: Dataset, sector: str | None = None,
 
 def revenue_summary(ds: Dataset, sector: str | None = None,
                     start: str | None = None, end: str | None = None) -> MetricResult:
-    df, sec = _filter_sector(ds.work_orders, sector)
-    df, date_filter = _filter_dates(df, "start_date", start, end)
+    df_sec, sec = _filter_sector(ds.work_orders, sector)
+    df, date_filter = _filter_dates(df_sec, "start_date", start, end)
 
     order = _sum(df["order_value"])
     billed = _sum(df["billed_value"])
@@ -168,7 +187,8 @@ def revenue_summary(ds: Dataset, sector: str | None = None,
     billing_eff = (billed / order) if order else None
     collection_eff = (collected / billed) if billed else None
 
-    caveats = _coverage_caveats(
+    caveats = _empty_timeframe_caveat(df_sec, "start_date", date_filter, len(df))
+    caveats += _coverage_caveats(
         ds.wo_quality, ["order_value", "billed_value", "collected_amount"]
     )
     if ds.wo_quality.negatives:
