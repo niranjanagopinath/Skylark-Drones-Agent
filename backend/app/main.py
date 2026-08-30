@@ -104,6 +104,59 @@ def overview() -> JSONResponse:
     })
 
 
+@app.get("/api/dashboard")
+def dashboard(refresh: bool = False) -> JSONResponse:
+    """
+    Structured payload powering the BI workspace views (Overview / Sales /
+    Operations / Financials). Composes existing deterministic metrics — no new
+    business logic. Deliberately omits the monday account email from the UI.
+    """
+    try:
+        ds = get_dataset(force_refresh=refresh)
+    except MondayError as exc:
+        return JSONResponse(
+            {"error": str(exc),
+             "hint": "Run scripts/ingest_to_monday.py and set MONDAY_API_TOKEN."},
+            status_code=503,
+        )
+
+    pipeline = bi_engine.pipeline_health(ds)
+    revenue = bi_engine.revenue_summary(ds)
+    collections = bi_engine.collections_summary(ds)
+    win = bi_engine.win_rate(ds)
+    sectors = bi_engine.sector_performance(ds)
+    stages = bi_engine.stage_breakdown(ds)
+    statuses = bi_engine.deal_status_breakdown(ds)
+    operations = bi_engine.operations_summary(ds)
+
+    live = ds.source == "monday"
+    return JSONResponse({
+        "data_source": {
+            "source": "Monday.com",
+            "live": live,
+            "label": "Monday.com · Live data" if live else "Monday.com · Cached data",
+            "deals_count": int(ds.deals.shape[0]),
+            "work_orders_count": int(ds.work_orders.shape[0]),
+            "last_refreshed": datetime.now(timezone.utc).isoformat(),
+        },
+        "pipeline": {"values": pipeline.summary_values, "caveats": pipeline.caveats,
+                     "audit": pipeline.audit},
+        "revenue": {"values": revenue.summary_values, "caveats": revenue.caveats,
+                    "audit": revenue.audit},
+        "collections": {"values": collections.summary_values, "caveats": collections.caveats},
+        "win_rate": {"values": win.summary_values},
+        "sectors": sectors.breakdown,
+        "stages": stages.breakdown,
+        "statuses": statuses.breakdown,
+        "operations": {"values": operations.summary_values,
+                       "breakdown": operations.breakdown, "caveats": operations.caveats},
+        "quality": {
+            "deals": ds.deals_quality.to_dict(),
+            "work_orders": ds.wo_quality.to_dict(),
+        },
+    })
+
+
 @app.get("/api/quality")
 def quality() -> JSONResponse:
     try:

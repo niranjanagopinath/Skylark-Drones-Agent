@@ -359,6 +359,35 @@ def collections_summary(ds: Dataset, sector: str | None = None) -> MetricResult:
     )
 
 
+def operations_summary(ds: Dataset, sector: str | None = None) -> MetricResult:
+    """Work-order execution health: counts by execution status (incl. not recorded)."""
+    df, sec = _filter_sector(ds.work_orders, sector)
+    total = len(df)
+    counts = df["execution_status"].fillna("(not recorded)").value_counts()
+    rows = [{"status": k, "work_orders": int(v)} for k, v in counts.items()]
+    not_recorded = int(df["execution_status"].isna().sum())
+
+    caveats = _unknown_sector_caveats(ds, df, sec)
+    caveats += _coverage_caveats(ds.wo_quality, ["execution_status"])
+    return MetricResult(
+        metric="operations_summary",
+        title="Operational health" + (f" — {sec}" if sec else ""),
+        summary_values={
+            "total_work_orders": total,
+            "execution_status_recorded": total - not_recorded,
+            "execution_status_not_recorded": not_recorded,
+        },
+        breakdown=rows,
+        caveats=caveats,
+        audit={
+            "sector_filter": sec,
+            "note": "Execution status is sparsely recorded in the source data; "
+                    "unrecorded work orders are shown explicitly as '(not recorded)'.",
+        },
+        unit="count",
+    )
+
+
 def data_quality(ds: Dataset) -> MetricResult:
     return MetricResult(
         metric="data_quality",
@@ -427,6 +456,7 @@ METRICS = {
     "deal_status_breakdown": deal_status_breakdown,
     "stage_breakdown": stage_breakdown,
     "collections_summary": collections_summary,
+    "operations_summary": operations_summary,
     "data_quality": data_quality,
     "leadership_update": leadership_update,
 }
