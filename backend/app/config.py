@@ -45,7 +45,7 @@ class Settings:
         self.llm_provider: str = os.getenv("LLM_PROVIDER", "none").strip().lower()
 
         self.groq_api_key: str = os.getenv("GROQ_API_KEY", "").strip()
-        self.groq_model: str = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant").strip()
+        self.groq_model: str = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b").strip()
         self.groq_api_url: str = os.getenv(
             "GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions"
         ).strip()
